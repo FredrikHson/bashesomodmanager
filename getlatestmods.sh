@@ -31,7 +31,6 @@ downloadallmods()
     mkdir -p modfiles
     mv modfiles/* archive
     while read i; do
-        echo $i | jq -C .
         name=$(echo $i | jq -r '.name')
         version=$(echo $i | jq -r '.version')
         url=$(echo $i | jq -r '.download')
@@ -57,7 +56,8 @@ checkversions()
             tmpfile=$(mktemp)
             jq "select(.url!=\"$url\")" mods.json > $tmpfile
             echo "{ \"name\":\"$name\", \"version\": \"$version\" , \"download\": \"$downloadurl\" , \"url\" : \"$url\" , \"md5\": \"$md5\"}" | jq . >> $tmpfile
-            mv $tmpfile mods.json
+            jq -s '. | sort_by(.name) | .[]' $tmpfile > mods.json
+            rm $tmpfile
         fi
 
     done < <(jq -c . mods.json)
