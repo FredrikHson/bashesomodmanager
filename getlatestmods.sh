@@ -16,7 +16,7 @@ downloadmod()
     downloadurl=$(echo $site | grep -oP '<div class="manuallink">.*?</a>' | perl -pe 's/.*?<a href="(.*?)".*/\1/')
     ending=$(echo $downloadurl | perl -pe 's/.*\.(.*?)\?.*/\1/')
     mkdir -p modfiles
-    curl  -s $downloadurl > modfiles/${filename}.$ending
+    curl  -s "$downloadurl" > modfiles/${filename}.$ending
     md5d=($(md5sum modfiles/${filename}.$ending))
     if [[ "$md5" != "$md5d" ]]; then
         echo Checksum error for $filename.$ending >&2
@@ -46,10 +46,10 @@ checkversions()
         oldversion=$(echo $i | jq -r '.version')
         url=$(echo $i | jq -r '.url')
         site=$(curl -s "$url")
-        version=$(echo "$site" | grep -oP '<div id="version".*?</div>' | perl -pe 's/.*: (.*?)<\/div>/\1/')
+        version=$(echo "$site" | grep -oP '<div id="version".*?</div>' | perl -pe 's/.*: (.*?)<\/div>/\1/;' -e 's/\s/_/g;' -e 's/_*$//')
         md5=$(echo "$site" | grep -P 'MD5' | perl -pe 's/.*value="(.*?)".*/\1/')
         downloadurl=$(echo $url | perl -pe 's#downloads/info#downloads/download#')
-        name=$(echo $url | perl -pe 's#.*-(.*?).html#\1#')
+        name=$(echo $url | perl -pe 's#.*?-(.*?).html#\1#')
 
         if [[ "$version" !=  "$oldversion" ]]; then
             echo found update for $name old:$oldversion new:$version
